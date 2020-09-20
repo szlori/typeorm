@@ -1472,8 +1472,14 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
             const relation = joinAttr.relation;
             const destinationTableName = joinAttr.tablePath;
             const destinationTableAlias = joinAttr.alias.name;
-            const appendedCondition = joinAttr.condition ? " AND (" + joinAttr.condition + ")" : "";
+            let appendedCondition = joinAttr.condition ? " AND (" + joinAttr.condition + ")" : "";
             const parentAlias = joinAttr.parentAlias;
+
+            if (joinAttr.metadata!.deleteDateColumn && !this.expressionMap.withDeleted)
+            {
+                const deletedCondition = destinationTableAlias + "." + joinAttr.metadata!.deleteDateColumn.propertyName + " IS NULL";                   
+                appendedCondition = appendedCondition + " AND (" + deletedCondition + ")";
+            }
 
             // if join was build without relation (e.g. without "post.category") then it means that we have direct
             // table to join, without junction table involved. This means we simply join direct table.
